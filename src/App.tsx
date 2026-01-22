@@ -3,6 +3,7 @@ import type { Story, StoryMapData, StoryMap } from './types';
 
 import { StoryMapBoard } from './components/StoryMapBoard';
 import { EditStoryModal } from './components/EditStoryModal';
+import { AddActivityModal } from './components/AddActivityModal';
 import { HomePage } from './components/HomePage';
 
 
@@ -11,6 +12,7 @@ function App() {
   const [currentMapId, setCurrentMapId] = useState<string | null>(null);
   const [data, setData] = useState<StoryMapData | null>(null);
   const [editingStory, setEditingStory] = useState<Story | null>(null);
+  const [isAddActivityModalOpen, setIsAddActivityModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -93,14 +95,49 @@ function App() {
     setEditingStory(newStory);
   };
 
-  const handleActivityReorder = (newActivities: string[]) => {
-    if (!data) return;
+  const handleActivityReorder = async (newActivities: string[]) => {
+    if (!data || !currentMapId) return;
     setData({ ...data, activities: newActivities });
+
+    // Persist to API
+    try {
+      const res = await fetch('/api/activities', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mapId: currentMapId, activities: newActivities })
+      });
+      if (!res.ok) throw new Error("Failed to update activity order");
+    } catch (e) {
+      console.error("Activity Reorder Error:", e);
+    }
   };
 
   const handleStoryUpdate = (newStories: Story[]) => {
     if (!data) return;
     setData({ ...data, stories: newStories });
+  };
+
+  const handleAddActivity = async () => {
+    setIsAddActivityModalOpen(true);
+  };
+
+  const handleAddActivitySubmit = async (name: string) => {
+    if (!currentMapId || !data) return;
+
+    try {
+      const res = await fetch('/api/activities', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mapId: currentMapId, name })
+      });
+      if (!res.ok) throw new Error("Failed to add activity");
+
+      // ローカル状態を更新
+      setData({ ...data, activities: [...data.activities, name] });
+    } catch (e) {
+      console.error("Add Activity Error:", e);
+      alert('Activityの追加に失敗しました');
+    }
   };
 
   const handleDeleteStory = async (storyId: string) => {
@@ -170,20 +207,32 @@ function App() {
             </div>
           )}
         </div>
-        <div className="flex items-center gap-4">
-          <div className="text-sm px-3 py-1 bg-slate-100 rounded-full text-slate-600 font-medium">
-            {data?.stories.length || 0} Stories
+        {currentMapId && (
+          <div className="flex items-center gap-4">
+            <div className="text-sm px-3 py-1 bg-slate-100 rounded-full text-slate-600 font-medium">
+              {data?.stories.length || 0} Stories
+            </div>
+            {data && (
+              <button
+                onClick={handleAddActivity}
+                className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors shadow"
+              >
+                + 新規Activity
+              </button>
+            )}
+            {!data && (
+              <button
+                onClick={handleCreateMap}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors shadow"
+              >
+                + 新規マップ
+              </button>
+            )}
+            <button className="bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-colors shadow">
+              Export
+            </button>
           </div>
-          <button
-            onClick={handleCreateMap}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors shadow"
-          >
-            + 新規マップ
-          </button>
-          <button className="bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-colors shadow">
-            Export
-          </button>
-        </div>
+        )}
       </header>
 
       {/* Map Selector Dropdown */}
@@ -213,6 +262,12 @@ function App() {
               onDelete={handleDeleteStory}
               activities={data.activities}
               releases={data.releases}
+            />
+            <AddActivityModal
+              isOpen={isAddActivityModalOpen}
+              onClose={() => setIsAddActivityModalOpen(false)}
+              onAdd={handleAddActivitySubmit}
+              existingActivities={data.activities}
             />
           </>
         ) : (
