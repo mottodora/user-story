@@ -12,7 +12,15 @@ export interface Story {
     status?: string;
 }
 
+export interface StoryMap {
+    id: string;
+    name: string;
+    isSample: boolean;
+    createdAt: string;
+}
+
 export interface StoryMapData {
+    map: StoryMap;
     activities: string[];
     releases: string[];
     stories: Story[];

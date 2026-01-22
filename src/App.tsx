@@ -1,18 +1,42 @@
 import { useEffect, useState } from 'react';
-import type { Story, StoryMapData } from './types';
+import type { Story, StoryMapData, StoryMap } from './types';
 
 import { StoryMapBoard } from './components/StoryMapBoard';
 import { EditStoryModal } from './components/EditStoryModal';
+import { HomePage } from './components/HomePage';
 
 
 function App() {
+  const [maps, setMaps] = useState<StoryMap[]>([]);
+  const [currentMapId, setCurrentMapId] = useState<string | null>(null);
   const [data, setData] = useState<StoryMapData | null>(null);
   const [editingStory, setEditingStory] = useState<Story | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Load all maps on mount
   useEffect(() => {
-    fetch('/api/stories')
+    fetch('/api/maps')
+      .then(res => res.json())
+      .then((fetchedMaps: StoryMap[]) => {
+        setMaps(fetchedMaps);
+        // Don't auto-select, show home page instead
+      })
+      .catch(e => {
+        console.error("Failed to load maps:", e);
+        setError("Failed to load maps.");
+      })
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  // Load stories when map changes
+  useEffect(() => {
+    if (!currentMapId) return;
+
+    // Clear old data immediately when switching maps
+    setData(null);
+    setIsLoading(true);
+    fetch(`/api/stories?mapId=${currentMapId}`)
       .then(res => {
         if (!res.ok) throw new Error(`Failed to fetch: ${res.status} ${res.statusText}`);
         return res.json();
@@ -28,7 +52,7 @@ function App() {
       .finally(() => {
         setIsLoading(false);
       });
-  }, []);
+  }, [currentMapId]);
 
   const handleSaveStory = async (updatedStory: Story) => {
     if (!data) return;
@@ -98,6 +122,26 @@ function App() {
     }
   };
 
+  const handleCreateMap = async () => {
+    const name = prompt('新しいマップの名前を入力してください:');
+    if (!name) return;
+
+    try {
+      const res = await fetch('/api/maps', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+      });
+      if (!res.ok) throw new Error("Failed to create map");
+      const newMap = await res.json();
+      setMaps([...maps, newMap]);
+      setCurrentMapId(newMap.id);
+    } catch (e) {
+      console.error("Create Map Error:", e);
+      alert('マップの作成に失敗しました');
+    }
+  };
+
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-slate-50 text-slate-900">
       <header className="flex-none h-16 px-6 bg-white border-b border-slate-200 shadow-sm z-40 flex items-center justify-between">
@@ -105,22 +149,54 @@ function App() {
           <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold shadow-blue-200 shadow-lg">
             S
           </div>
-          <h1 className="text-xl font-bold text-slate-800 tracking-tight">
-            User Story Mapping
-          </h1>
+          {currentMapId ? (
+            <button
+              onClick={() => setCurrentMapId(null)}
+              className="text-xl font-bold text-slate-800 hover:text-blue-600 tracking-tight transition-colors cursor-pointer"
+              title="ホームに戻る"
+            >
+              User Story Mapping
+            </button>
+          ) : (
+            <h1 className="text-xl font-bold text-slate-800 tracking-tight">
+              User Story Mapping
+            </h1>
+          )}
+          {data?.map && (
+            <div className="ml-4 flex items-center gap-2">
+              <span className="text-sm px-3 py-1.5 bg-blue-50 rounded-lg text-blue-700 font-medium border border-blue-200">
+                📋 {data.map.name} {data.map.isSample && '(サンプル)'}
+              </span>
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-4">
           <div className="text-sm px-3 py-1 bg-slate-100 rounded-full text-slate-600 font-medium">
             {data?.stories.length || 0} Stories
           </div>
+          <button
+            onClick={handleCreateMap}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors shadow"
+          >
+            + 新規マップ
+          </button>
           <button className="bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-colors shadow">
             Export
           </button>
         </div>
       </header>
 
+      {/* Map Selector Dropdown */}
+
+
       <main className="flex-1 overflow-hidden relative">
-        {data ? (
+        {!currentMapId ? (
+          <HomePage
+            maps={maps}
+            onSelectMap={setCurrentMapId}
+            onCreateMap={handleCreateMap}
+          />
+        ) : data ? (
           <>
             <StoryMapBoard
               data={data}

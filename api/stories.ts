@@ -7,13 +7,28 @@ export default async function handler(req, res) {
 
     try {
         if (req.method === 'GET') {
-            const stories = await prisma.story.findMany();
+            const { mapId } = req.query;
+
+            if (!mapId) {
+                return res.status(400).json({ error: 'mapId is required' });
+            }
+
+            // Get the map
+            const map = await prisma.storyMap.findUnique({
+                where: { id: String(mapId) }
+            });
+
+            if (!map) {
+                return res.status(404).json({ error: 'Map not found' });
+            }
+
+            // Get stories for this map
+            const stories = await prisma.story.findMany({
+                where: { mapId: String(mapId) }
+            });
 
             // Extract unique activities and releases (priorities)
-            // We need to maintain some order potentially, but for now unique set is fine.
-            // If we want specific order, we might need a separate table or just sort locally.
             const activities = Array.from(new Set(stories.map(s => s.activity))).sort();
-            // Default releases if empty, or extracted
             let releases = Array.from(new Set(stories.map(s => s.release)));
             if (releases.length === 0) {
                 releases = ['MVP', 'Next', 'Later'];
@@ -31,6 +46,12 @@ export default async function handler(req, res) {
             }
 
             res.status(200).json({
+                map: {
+                    id: map.id,
+                    name: map.name,
+                    isSample: map.isSample,
+                    createdAt: map.createdAt.toISOString()
+                },
                 stories,
                 activities,
                 releases

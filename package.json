@@ -1,7 +1,7 @@
 {
   "name": "user-story-mapping",
   "prisma": {
-    "seed": "node --loader ts-node/esm prisma/seed.ts"
+    "seed": "npx tsx prisma/seed.ts"
   },
   "private": true,
   "version": "0.0.0",
