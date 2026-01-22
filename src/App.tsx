@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Routes, Route, useNavigate, useParams } from 'react-router-dom';
+import { Routes, Route, useNavigate, useMatch } from 'react-router-dom';
 import type { StoryMap } from './types';
 import { HomePage } from './components/HomePage';
 import { MapPage } from './components/MapPage';
@@ -75,7 +75,8 @@ function App() {
 
 // Header component that shows current map info
 function Header() {
-  const { mapId } = useParams();
+  const match = useMatch('/maps/:mapId');
+  const mapId = match?.params.mapId;
   const navigate = useNavigate();
   const [mapData, setMapData] = useState<{ map?: { name: string; isSample: boolean }; stories?: any[] } | null>(null);
 
