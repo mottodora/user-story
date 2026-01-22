@@ -10,6 +10,15 @@ datasource db {
   url      = "file:./dev.db"
 }
 
+model StoryMap {
+  id        String   @id @default(uuid())
+  name      String
+  isSample  Boolean  @default(false)
+  stories   Story[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Story {
   id        String   @id @default(uuid())
   title     String
@@ -17,6 +26,8 @@ model Story {
   release   String
   body      String?
   status    String?
+  mapId     String
+  map       StoryMap @relation(fields: [mapId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
