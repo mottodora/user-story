@@ -14,7 +14,8 @@ export const parseCSV = (csvText: string): StoryMapData => {
 
     rawData.forEach((row, index) => {
         const activity = row['アクティビティ（バックボーン）'];
-        const title = row['ユーザーストーリー'];
+        const title = row['タイトル'];
+        const body = row['ユーザーストーリー'];
         const release = row['優先度'];
 
         if (!activity && !title) return;
@@ -26,6 +27,7 @@ export const parseCSV = (csvText: string): StoryMapData => {
             id: `story-${index}`,
             activity: activity || 'Uncategorized',
             title: title || '',
+            body: body || '',
             release: release || 'Unscheduled',
             acceptanceCriteria: row['受け入れ条件（簡易）'],
             notes: row['メモ / ルール'],

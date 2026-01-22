@@ -4,6 +4,7 @@ export interface Story {
     id: string;
     activity: string;
     title: string;
+    body?: string;
     release: string; // Priority
     acceptanceCriteria?: string;
     notes?: string;
