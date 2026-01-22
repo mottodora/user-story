@@ -13,7 +13,6 @@ function App() {
   const [editingStory, setEditingStory] = useState<Story | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [showMapSelector, setShowMapSelector] = useState(false);
 
   // Load all maps on mount
   useEffect(() => {
@@ -163,12 +162,9 @@ function App() {
           )}
           {data?.map && (
             <div className="ml-4 flex items-center gap-2">
-              <button
-                onClick={() => setShowMapSelector(!showMapSelector)}
-                className="text-sm px-3 py-1.5 bg-blue-50 hover:bg-blue-100 rounded-lg text-blue-700 font-medium border border-blue-200 transition-colors"
-              >
+              <span className="text-sm px-3 py-1.5 bg-blue-50 rounded-lg text-blue-700 font-medium border border-blue-200">
                 📋 {data.map.name} {data.map.isSample && '(サンプル)'}
-              </button>
+              </span>
             </div>
           )}
         </div>
@@ -189,24 +185,7 @@ function App() {
       </header>
 
       {/* Map Selector Dropdown */}
-      {showMapSelector && (
-        <div className="absolute top-16 left-6 z-50 bg-white border border-slate-200 rounded-lg shadow-xl p-2 min-w-[300px]">
-          <div className="text-xs font-semibold text-slate-500 px-3 py-2">マップを選択</div>
-          {maps.map(map => (
-            <button
-              key={map.id}
-              onClick={() => {
-                setCurrentMapId(map.id);
-                setShowMapSelector(false);
-              }}
-              className={`w-full text-left px-3 py-2 rounded text-sm hover:bg-slate-50 transition-colors ${currentMapId === map.id ? 'bg-blue-50 text-blue-700 font-medium' : 'text-slate-700'
-                }`}
-            >
-              {map.name} {map.isSample && '(サンプル)'}
-            </button>
-          ))}
-        </div>
-      )}
+
 
       <main className="flex-1 overflow-hidden relative">
         {!currentMapId ? (
