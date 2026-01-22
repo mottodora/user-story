@@ -2,8 +2,9 @@ import React, { useMemo, useState } from 'react';
 import type { StoryMapData, Story } from '../types';
 import { ActivityHeader } from './ActivityHeader';
 import { ReleaseHeader } from './ReleaseHeader';
-import { StoryCard } from './StoryCard';
 import { SortableActivityHeader } from './SortableActivityHeader';
+import { StoryMapCell } from './StoryMapCell';
+import { StoryCard } from './StoryCard';
 import {
     DndContext,
     closestCenter,
@@ -15,6 +16,7 @@ import {
     defaultDropAnimationSideEffects,
     type DragStartEvent,
     type DragEndEvent,
+    type DragOverEvent,
 } from '@dnd-kit/core';
 import {
     arrayMove,
@@ -27,10 +29,19 @@ interface StoryMapBoardProps {
     data: StoryMapData;
     onStoryClick?: (story: Story) => void;
     onActivityReorder?: (newOrder: string[]) => void;
+    onStoryUpdate?: (newStories: Story[]) => void;
+    onAddStory?: (release: string, activity: string) => void;
 }
 
-export const StoryMapBoard: React.FC<StoryMapBoardProps> = ({ data, onStoryClick, onActivityReorder }) => {
+export const StoryMapBoard: React.FC<StoryMapBoardProps> = ({
+    data,
+    onStoryClick,
+    onActivityReorder,
+    onStoryUpdate,
+    onAddStory
+}) => {
     const [activeId, setActiveId] = useState<string | null>(null);
+    const [activeStory, setActiveStory] = useState<Story | null>(null);
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -54,7 +65,7 @@ export const StoryMapBoard: React.FC<StoryMapBoardProps> = ({ data, onStoryClick
             map.set(r, row);
         });
 
-        // Populate stories
+        // Populate stories - maintain relative order from data.stories
         data.stories.forEach(story => {
             const row = map.get(story.release);
             if (row) {
@@ -68,22 +79,88 @@ export const StoryMapBoard: React.FC<StoryMapBoardProps> = ({ data, onStoryClick
     }, [data]);
 
     const handleDragStart = (event: DragStartEvent) => {
-        setActiveId(event.active.id as string);
+        const { active } = event;
+        setActiveId(active.id as string);
+        if (active.data.current?.type === 'Story') {
+            setActiveStory(active.data.current.story as Story);
+        }
+    };
+
+    const handleDragOver = (event: DragOverEvent) => {
+        const { active, over } = event;
+        if (!over) return;
+
+        const activeType = active.data.current?.type;
+        const overType = over.data.current?.type;
+
+        // Give priority to Story dragging logic
+        if (activeType === 'Story' && onStoryUpdate) {
+            const activeId = active.id as string;
+            const overId = over.id as string;
+
+            // Find current story and its index
+            const activeIndex = data.stories.findIndex(s => s.id === activeId);
+            const activeStory = data.stories[activeIndex];
+            if (!activeStory) return;
+
+            if (overType === 'Story') {
+                const overIndex = data.stories.findIndex(s => s.id === overId);
+                const overStory = data.stories[overIndex];
+
+                if (activeStory.activity !== overStory.activity || activeStory.release !== overStory.release) {
+                    // Moving to different list (cell)
+                    const newStories = [...data.stories];
+                    // Update metadata first
+                    newStories[activeIndex] = {
+                        ...activeStory,
+                        activity: overStory.activity,
+                        release: overStory.release
+                    };
+                    // Move in array
+                    const reorderedStories = arrayMove(newStories, activeIndex, overIndex);
+                    onStoryUpdate(reorderedStories);
+                } else if (activeIndex !== overIndex) {
+                    // Reordering within same list
+                    const reorderedStories = arrayMove(data.stories, activeIndex, overIndex);
+                    onStoryUpdate(reorderedStories);
+                }
+            } else if (overType === 'Cell') {
+                // Moving to an empty area in a cell
+                const { release, activity } = over.data.current || {};
+
+                if (activeStory.activity !== activity || activeStory.release !== release) {
+                    const newStories = [...data.stories];
+                    newStories[activeIndex] = {
+                        ...activeStory,
+                        activity: activity,
+                        release: release
+                    };
+                    // If moving to a cell, we usually append or keep order? 
+                    // To keep it simple, just update metadata. 
+                    // However, if we don't move it in the array, it might jump around if the sort logic relies on array order.
+                    // But here grouping relies on metadata.
+                    onStoryUpdate(newStories);
+                }
+            }
+        }
     };
 
     const handleDragEnd = (event: DragEndEvent) => {
         const { active, over } = event;
 
-        if (over && active.id !== over.id) {
+        // Handle Activity Reordering
+        if (active.data.current?.type === 'Activity' && over && active.id !== over.id) {
             const oldIndex = data.activities.indexOf(active.id as string);
             const newIndex = data.activities.indexOf(over.id as string);
 
-            if (onActivityReorder) {
+            if (onActivityReorder && oldIndex !== -1 && newIndex !== -1) {
                 const newOrder = arrayMove(data.activities, oldIndex, newIndex);
                 onActivityReorder(newOrder);
             }
         }
+
         setActiveId(null);
+        setActiveStory(null);
     };
 
     const dropAnimation = {
@@ -101,6 +178,7 @@ export const StoryMapBoard: React.FC<StoryMapBoardProps> = ({ data, onStoryClick
             sensors={sensors}
             collisionDetection={closestCenter}
             onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
         >
             <div className="overflow-auto h-full w-full bg-slate-50 scrollbar-thin scrollbar-thumb-slate-300">
@@ -133,23 +211,14 @@ export const StoryMapBoard: React.FC<StoryMapBoardProps> = ({ data, onStoryClick
                             {data.activities.map(activity => {
                                 const stories = grid.get(release)?.get(activity) || [];
                                 return (
-                                    <div
+                                    <StoryMapCell
                                         key={`${release}-${activity}`}
-                                        className="p-3 border-b border-r border-slate-200 min-h-[160px] bg-white group/cell hover:bg-sky-50/30 transition-colors flex flex-col gap-3"
-                                    >
-                                        {stories.map(story => (
-                                            <StoryCard
-                                                key={story.id}
-                                                story={story}
-                                                onClick={onStoryClick}
-                                            />
-                                        ))}
-
-                                        {/* Add Button Placeholder - Visible on Hover */}
-                                        <button className="mt-auto opacity-0 group-hover/cell:opacity-100 transition-opacity w-full py-2 border-2 border-dashed border-slate-200 rounded-lg text-slate-400 hover:border-blue-300 hover:text-blue-500 hover:bg-blue-50 text-sm font-medium">
-                                            + Add Story
-                                        </button>
-                                    </div>
+                                        release={release}
+                                        activity={activity}
+                                        stories={stories}
+                                        onStoryClick={onStoryClick}
+                                        onAddStory={onAddStory}
+                                    />
                                 );
                             })}
                         </React.Fragment>
@@ -157,7 +226,13 @@ export const StoryMapBoard: React.FC<StoryMapBoardProps> = ({ data, onStoryClick
                 </div>
             </div>
             <DragOverlay dropAnimation={dropAnimation}>
-                {activeId ? <ActivityHeader title={activeId} /> : null}
+                {activeId ? (
+                    activeStory ? (
+                        <StoryCard story={activeStory} />
+                    ) : (
+                        <ActivityHeader title={activeId} />
+                    )
+                ) : null}
             </DragOverlay>
         </DndContext>
     );
