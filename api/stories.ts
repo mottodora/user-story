@@ -27,8 +27,33 @@ export default async function handler(req, res) {
                 where: { mapId: String(mapId) }
             });
 
-            // Extract unique activities and releases (priorities)
-            const activities = Array.from(new Set(stories.map(s => s.activity))).sort();
+            // Get activities from the map's activities field, or extract from stories
+            let activities = [];
+            try {
+                activities = map.activities ? JSON.parse(map.activities) : [];
+            } catch (e) {
+                console.error('Failed to parse activities:', e);
+                activities = [];
+            }
+
+            // If no activities are stored, extract from stories (backward compatibility)
+            if (activities.length === 0) {
+                const activitySet = new Set(stories.map(s => s.activity));
+                activities = Array.from(activitySet).sort();
+
+                // Default activities if still empty
+                if (activities.length === 0) {
+                    activities = ['User Registration', 'Login', 'Profile'];
+                }
+
+                // Save extracted activities to database for future use
+                await prisma.storyMap.update({
+                    where: { id: String(mapId) },
+                    data: { activities: JSON.stringify(activities) }
+                });
+            }
+
+            // Extract unique releases (priorities)
             let releases = Array.from(new Set(stories.map(s => s.release)));
             if (releases.length === 0) {
                 releases = ['MVP', 'Next', 'Later'];
@@ -39,11 +64,6 @@ export default async function handler(req, res) {
             defaultReleases.forEach(r => {
                 if (!releases.includes(r)) releases.push(r);
             });
-
-            // Default activities if empty
-            if (activities.length === 0) {
-                activities.push('User Registration', 'Login', 'Profile');
-            }
 
             res.status(200).json({
                 map: {
