@@ -33,6 +33,8 @@ function App() {
   useEffect(() => {
     if (!currentMapId) return;
 
+    // Clear old data immediately when switching maps
+    setData(null);
     setIsLoading(true);
     fetch(`/api/stories?mapId=${currentMapId}`)
       .then(res => {
