@@ -1,73 +1,56 @@
-# React + TypeScript + Vite
+# User Story Mapping Tool
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+ユーザーストーリーマッピングを行うためのWebアプリケーションです。
+CSVデータをインポートし、アクティビティ（バックボーン）と優先度（リリース）のマトリクス上にユーザーストーリーを可視化・編集することができます。
 
-Currently, two official plugins are available:
+![User Story Map Board](./public/screenshot.png) 
+*(スクリーンショットはイメージです)*
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 特徴 (Features)
 
-## React Compiler
+- **ユーザーストーリーマップの可視化**: アクティビティを横軸、優先度（リリース）を縦軸としたグリッド表示。
+- **インタラクティブな編集**: ストーリーカードをクリックして、タイトル、優先度、ステータス、受け入れ条件などを編集可能。
+- **CSVインポート**: 所定のフォーマットのCSVファイルを読み込んでマップを生成。
+- **モダンなUI**: TailwindCSS (v4) を使用したクリーンで使いやすいデザイン。
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 技術スタック (Tech Stack)
 
-## Expanding the ESLint configuration
+- **Frontend**: React, TypeScript
+- **Build Tool**: Vite
+- **Styling**: TailwindCSS (v4)
+- **CSV Parsing**: Papaparse
+- **Icons**: Lucide React
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## セットアップと実行 (Getting Started)
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 1. リポジトリのクローン
+```bash
+git clone git@github.com:mottodora/user-story.git
+cd user-story-mapping
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 2. 依存関係のインストール
+```bash
+npm install
 ```
+
+### 3. アプリケーションの実行
+```bash
+npm run dev
+```
+ブラウザで `http://localhost:5173` (またはコンソールに表示されるポート) を開いてください。
+
+## データフォーマット (CSV)
+
+`data/story_map.csv` に配置されるCSVファイルは以下のカラムを持つ必要があります：
+
+- **アクティビティ（バックボーン）**: 横軸のグループ（例: ユーザー登録、検索、購入）
+- **優先度**: 縦軸のリリース/優先度（例: MVP, 次回以降, Low）
+- **ユーザーストーリー**: ストーリーのタイトル
+- **受け入れ条件（簡易）**: (Optional) ストーリーの詳細
+- **ステータス**: (Optional) 開発ステータス
+- **KPI（任意）**: (Optional) 関連するKPI
+
+## ライセンス
+
+MIT
