@@ -32,6 +32,11 @@ function App() {
     setData({ ...data, activities: newActivities });
   };
 
+  const handleStoryUpdate = (newStories: Story[]) => {
+    if (!data) return;
+    setData({ ...data, stories: newStories });
+  };
+
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-slate-50 text-slate-900">
       <header className="flex-none h-16 px-6 bg-white border-b border-slate-200 shadow-sm z-40 flex items-center justify-between">
@@ -60,6 +65,7 @@ function App() {
               data={data}
               onStoryClick={setEditingStory}
               onActivityReorder={handleActivityReorder}
+              onStoryUpdate={handleStoryUpdate}
             />
             <EditStoryModal
               story={editingStory}

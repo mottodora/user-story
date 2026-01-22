@@ -16,7 +16,10 @@ export const SortableActivityHeader: React.FC<SortableActivityHeaderProps> = ({ 
         transform,
         transition,
         isDragging
-    } = useSortable({ id });
+    } = useSortable({
+        id,
+        data: { type: 'Activity' }
+    });
 
     const style = {
         transform: CSS.Translate.toString(transform),
