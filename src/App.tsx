@@ -1,40 +1,60 @@
 import { useEffect, useState } from 'react';
 import type { Story, StoryMapData } from './types';
-import { parseCSV } from './utils/csvParser';
+
 import { StoryMapBoard } from './components/StoryMapBoard';
 import { EditStoryModal } from './components/EditStoryModal';
-// @ts-ignore
-import csvDataRaw from '../data/story_map.csv?raw';
+
 
 function App() {
   const [data, setData] = useState<StoryMapData | null>(null);
   const [editingStory, setEditingStory] = useState<Story | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (csvDataRaw) {
-      try {
-        const parsed = parseCSV(csvDataRaw);
-        setData(parsed);
-      } catch (e) {
-        console.error("CSV Parse Error:", e);
-      }
-    }
+    fetch('/api/stories')
+      .then(res => {
+        if (!res.ok) throw new Error(`Failed to fetch: ${res.status} ${res.statusText}`);
+        return res.json();
+      })
+      .then((data: StoryMapData) => {
+        setData(data);
+        setError(null);
+      })
+      .catch(e => {
+        console.error("API Fetch Error:", e);
+        setError("Failed to load stories. Make sure the backend is running (npm run dev is not enough, use 'vercel dev').");
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, []);
 
-  const handleSaveStory = (updatedStory: Story) => {
+  const handleSaveStory = async (updatedStory: Story) => {
     if (!data) return;
 
-    // Check if story already exists
+    // Optimistic update
     const exists = data.stories.some(s => s.id === updatedStory.id);
-
     let newStories;
     if (exists) {
       newStories = data.stories.map(s => s.id === updatedStory.id ? updatedStory : s);
     } else {
       newStories = [...data.stories, updatedStory];
     }
-
     setData({ ...data, stories: newStories });
+
+    // Persist to API
+    try {
+      const res = await fetch('/api/stories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ story: updatedStory })
+      });
+      if (!res.ok) throw new Error("Failed to save");
+    } catch (e) {
+      console.error("Save Error:", e);
+      // TODO: Revert local state on error
+    }
   };
 
   const handleAddStory = (release: string, activity: string) => {
@@ -59,11 +79,23 @@ function App() {
     setData({ ...data, stories: newStories });
   };
 
-  const handleDeleteStory = (storyId: string) => {
+  const handleDeleteStory = async (storyId: string) => {
     if (!data) return;
+
+    // Optimistic update
     const newStories = data.stories.filter(s => s.id !== storyId);
     setData({ ...data, stories: newStories });
     setEditingStory(null);
+
+    // Persist to API
+    try {
+      const res = await fetch(`/api/stories?id=${storyId}`, {
+        method: 'DELETE'
+      });
+      if (!res.ok) throw new Error("Failed to delete");
+    } catch (e) {
+      console.error("Delete Error:", e);
+    }
   };
 
   return (
@@ -109,12 +141,25 @@ function App() {
           </>
         ) : (
           <div className="flex items-center justify-center h-full flex-col gap-4">
-            <div className="animate-spin rounded-full h-10 w-10 border-4 border-slate-200 border-t-blue-600"></div>
-            <p className="text-slate-400 font-medium">Loading map...</p>
+            {isLoading ? (
+              <>
+                <div className="animate-spin rounded-full h-10 w-10 border-4 border-slate-200 border-t-blue-600"></div>
+                <p className="text-slate-400 font-medium">Loading map...</p>
+              </>
+            ) : error ? (
+              <div className="text-red-500 font-medium text-center">
+                <p>Error: {error}</p>
+                <p className="text-sm mt-2 text-slate-500">
+                  If you are running locally, please use <code>npx vercel dev</code>.
+                </p>
+              </div>
+            ) : (
+              <div className="text-slate-400 font-medium">No data found.</div>
+            )}
           </div>
         )}
-      </main>
-    </div>
+      </main >
+    </div >
   );
 }
 
