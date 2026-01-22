@@ -27,6 +27,11 @@ function App() {
     setData({ ...data, stories: newStories });
   };
 
+  const handleActivityReorder = (newActivities: string[]) => {
+    if (!data) return;
+    setData({ ...data, activities: newActivities });
+  };
+
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-slate-50 text-slate-900">
       <header className="flex-none h-16 px-6 bg-white border-b border-slate-200 shadow-sm z-40 flex items-center justify-between">
@@ -54,6 +59,7 @@ function App() {
             <StoryMapBoard
               data={data}
               onStoryClick={setEditingStory}
+              onActivityReorder={handleActivityReorder}
             />
             <EditStoryModal
               story={editingStory}

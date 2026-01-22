@@ -63,13 +63,27 @@ export const EditStoryModal: React.FC<EditStoryModalProps> = ({
                         <label className="block text-sm font-semibold text-slate-700 mb-1.5 leading-snug">
                             Story Title
                         </label>
-                        <textarea
+                        <input
+                            type="text"
                             name="title"
                             value={formData.title}
                             onChange={handleChange}
-                            className="w-full border border-slate-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-slate-800 font-medium bg-white shadow-sm resize-none"
-                            rows={2}
+                            className="w-full border border-slate-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-slate-800 font-bold text-lg bg-white shadow-sm"
                             required
+                            placeholder="Short Title..."
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-semibold text-slate-700 mb-1.5 leading-snug">
+                            User Story (Full Text)
+                        </label>
+                        <textarea
+                            name="body"
+                            value={formData.body || ''}
+                            onChange={handleChange}
+                            className="w-full border border-slate-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-slate-700 bg-white shadow-sm resize-none"
+                            rows={3}
                             placeholder="As a user, I want to..."
                         />
                     </div>
