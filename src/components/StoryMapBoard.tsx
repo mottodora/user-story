@@ -30,13 +30,15 @@ interface StoryMapBoardProps {
     onStoryClick?: (story: Story) => void;
     onActivityReorder?: (newOrder: string[]) => void;
     onStoryUpdate?: (newStories: Story[]) => void;
+    onAddStory?: (release: string, activity: string) => void;
 }
 
 export const StoryMapBoard: React.FC<StoryMapBoardProps> = ({
     data,
     onStoryClick,
     onActivityReorder,
-    onStoryUpdate
+    onStoryUpdate,
+    onAddStory
 }) => {
     const [activeId, setActiveId] = useState<string | null>(null);
     const [activeStory, setActiveStory] = useState<Story | null>(null);
@@ -215,6 +217,7 @@ export const StoryMapBoard: React.FC<StoryMapBoardProps> = ({
                                         activity={activity}
                                         stories={stories}
                                         onStoryClick={onStoryClick}
+                                        onAddStory={onAddStory}
                                     />
                                 );
                             })}

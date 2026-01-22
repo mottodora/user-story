@@ -23,8 +23,30 @@ function App() {
 
   const handleSaveStory = (updatedStory: Story) => {
     if (!data) return;
-    const newStories = data.stories.map(s => s.id === updatedStory.id ? updatedStory : s);
+
+    // Check if story already exists
+    const exists = data.stories.some(s => s.id === updatedStory.id);
+
+    let newStories;
+    if (exists) {
+      newStories = data.stories.map(s => s.id === updatedStory.id ? updatedStory : s);
+    } else {
+      newStories = [...data.stories, updatedStory];
+    }
+
     setData({ ...data, stories: newStories });
+  };
+
+  const handleAddStory = (release: string, activity: string) => {
+    const newStory: Story = {
+      id: crypto.randomUUID(),
+      title: '',
+      activity,
+      release,
+      body: '',
+      status: 'Draft'
+    };
+    setEditingStory(newStory);
   };
 
   const handleActivityReorder = (newActivities: string[]) => {
@@ -35,6 +57,13 @@ function App() {
   const handleStoryUpdate = (newStories: Story[]) => {
     if (!data) return;
     setData({ ...data, stories: newStories });
+  };
+
+  const handleDeleteStory = (storyId: string) => {
+    if (!data) return;
+    const newStories = data.stories.filter(s => s.id !== storyId);
+    setData({ ...data, stories: newStories });
+    setEditingStory(null);
   };
 
   return (
@@ -66,12 +95,14 @@ function App() {
               onStoryClick={setEditingStory}
               onActivityReorder={handleActivityReorder}
               onStoryUpdate={handleStoryUpdate}
+              onAddStory={handleAddStory}
             />
             <EditStoryModal
               story={editingStory}
               isOpen={!!editingStory}
               onClose={() => setEditingStory(null)}
               onSave={handleSaveStory}
+              onDelete={handleDeleteStory}
               activities={data.activities}
               releases={data.releases}
             />

@@ -9,9 +9,10 @@ interface StoryMapCellProps {
     activity: string;
     stories: Story[];
     onStoryClick?: (story: Story) => void;
+    onAddStory?: (release: string, activity: string) => void;
 }
 
-export const StoryMapCell: React.FC<StoryMapCellProps> = ({ release, activity, stories, onStoryClick }) => {
+export const StoryMapCell: React.FC<StoryMapCellProps> = ({ release, activity, stories, onStoryClick, onAddStory }) => {
     const cellId = `${release}-${activity}`;
     const { setNodeRef } = useDroppable({
         id: cellId,
@@ -38,7 +39,10 @@ export const StoryMapCell: React.FC<StoryMapCellProps> = ({ release, activity, s
             </SortableContext>
 
             {/* Add Button Placeholder - Visible on Hover */}
-            <button className="mt-auto opacity-0 group-hover/cell:opacity-100 transition-opacity w-full py-2 border-2 border-dashed border-slate-200 rounded-lg text-slate-400 hover:border-blue-300 hover:text-blue-500 hover:bg-blue-50 text-sm font-medium">
+            <button
+                onClick={() => onAddStory?.(release, activity)}
+                className="mt-auto opacity-0 group-hover/cell:opacity-100 transition-opacity w-full py-2 border-2 border-dashed border-slate-200 rounded-lg text-slate-400 hover:border-blue-300 hover:text-blue-500 hover:bg-blue-50 text-sm font-medium"
+            >
                 + Add Story
             </button>
         </div>

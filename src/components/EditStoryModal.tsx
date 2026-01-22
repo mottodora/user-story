@@ -6,6 +6,7 @@ interface EditStoryModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSave: (updatedStory: Story) => void;
+    onDelete: (storyId: string) => void;
     activities: string[];
     releases: string[];
 }
@@ -15,6 +16,7 @@ export const EditStoryModal: React.FC<EditStoryModalProps> = ({
     isOpen,
     onClose,
     onSave,
+    onDelete,
     activities,
     releases
 }) => {
@@ -43,6 +45,14 @@ export const EditStoryModal: React.FC<EditStoryModalProps> = ({
         }
     };
 
+    const handleDelete = () => {
+        if (formData && onDelete) {
+            if (window.confirm('Are you sure you want to delete this story?')) {
+                onDelete(formData.id);
+            }
+        }
+    };
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-[2px] p-4 animate-in fade-in duration-200">
             <div
@@ -59,6 +69,7 @@ export const EditStoryModal: React.FC<EditStoryModalProps> = ({
                 </div>
 
                 <form onSubmit={handleSubmit} className="p-6 overflow-y-auto flex-1 flex flex-col gap-5">
+                    {/* ... form fields ... */}
                     <div>
                         <label className="block text-sm font-semibold text-slate-700 mb-1.5 leading-snug">
                             Story Title
@@ -152,20 +163,29 @@ export const EditStoryModal: React.FC<EditStoryModalProps> = ({
 
                 </form>
 
-                <div className="p-4 border-t border-slate-100 bg-slate-50/80 flex justify-end gap-3">
+                <div className="p-4 border-t border-slate-100 bg-slate-50/80 flex justify-between gap-3">
                     <button
                         type="button"
-                        onClick={onClose}
-                        className="px-4 py-2 text-slate-600 font-medium hover:bg-slate-200/60 rounded-lg transition-colors text-sm"
+                        onClick={handleDelete}
+                        className="px-4 py-2 text-red-600 font-medium hover:bg-red-50 rounded-lg transition-colors text-sm"
                     >
-                        Cancel
+                        Delete
                     </button>
-                    <button
-                        onClick={handleSubmit}
-                        className="px-5 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 shadow-md shadow-blue-600/20 transition-all text-sm transform active:scale-95"
-                    >
-                        Save Changes
-                    </button>
+                    <div className="flex gap-3">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="px-4 py-2 text-slate-600 font-medium hover:bg-slate-200/60 rounded-lg transition-colors text-sm"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleSubmit}
+                            className="px-5 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 shadow-md shadow-blue-600/20 transition-all text-sm transform active:scale-95"
+                        >
+                            Save Changes
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
