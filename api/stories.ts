@@ -89,10 +89,16 @@ export default async function handler(req, res) {
             // The frontend "save" sends the updated story.
             if (body.story) {
                 const { id, title, activity, release, body: storyBody, status } = body.story;
+                const { mapId } = body;
+
+                if (!mapId) {
+                    return res.status(400).json({ error: 'mapId is required for saving story' });
+                }
+
                 const result = await prisma.story.upsert({
                     where: { id: id || 'new' }, // 'new' won't match UUID usually
                     update: { title, activity, release, body: storyBody, status },
-                    create: { id, title, activity, release, body: storyBody, status },
+                    create: { id, mapId, title, activity, release, body: storyBody, status },
                 });
                 res.status(200).json(result);
             } else if (body.deleteId) {
