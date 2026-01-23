@@ -4,6 +4,9 @@ import type { Story, StoryMapData } from '../types';
 import { StoryMapBoard } from './StoryMapBoard';
 import { EditStoryModal } from './EditStoryModal';
 import { AddActivityModal } from './AddActivityModal';
+import { StoryTable } from './StoryTable';
+import { Download } from 'lucide-react';
+import { exportStoriesToCSV } from '../utils/csv';
 
 export const MapPage = () => {
     const { mapId } = useParams<{ mapId: string }>();
@@ -12,6 +15,12 @@ export const MapPage = () => {
     const [isAddActivityModalOpen, setIsAddActivityModalOpen] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [viewMode, setViewMode] = useState<'board' | 'table'>('board');
+
+    const handleExportValues = () => {
+        if (!data) return;
+        exportStoriesToCSV(data.stories);
+    };
 
     // Load stories when map changes
     useEffect(() => {
@@ -201,24 +210,60 @@ export const MapPage = () => {
     return (
         <div className="h-full w-full flex flex-col">
             {/* Top action bar */}
-            <div className="flex-none px-6 py-3 bg-white border-b border-slate-200 flex items-center justify-end gap-4">
-                <button
-                    onClick={handleAddActivity}
-                    className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors shadow"
-                >
-                    + 新規Activity
-                </button>
+            <div className="flex-none px-6 py-3 bg-white border-b border-slate-200 flex items-center justify-between gap-4">
+                <div className="flex items-center bg-slate-100 p-1 rounded-lg">
+                    <button
+                        onClick={() => setViewMode('board')}
+                        className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === 'board'
+                            ? 'bg-white text-blue-600 shadow-sm'
+                            : 'text-slate-500 hover:text-slate-700'
+                            }`}
+                    >
+                        Board View
+                    </button>
+                    <button
+                        onClick={() => setViewMode('table')}
+                        className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === 'table'
+                            ? 'bg-white text-blue-600 shadow-sm'
+                            : 'text-slate-500 hover:text-slate-700'
+                            }`}
+                    >
+                        Table View
+                    </button>
+                </div>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={handleAddActivity}
+                        className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors shadow"
+                    >
+                        + 新規Activity
+                    </button>
+                    <button
+                        onClick={handleExportValues}
+                        className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
+                    >
+                        <Download size={16} />
+                        Export CSV
+                    </button>
+                </div>
             </div>
 
-            {/* Map board */}
+            {/* Content Area */}
             <div className="flex-1 overflow-hidden">
-                <StoryMapBoard
-                    data={data}
-                    onStoryClick={setEditingStory}
-                    onActivityReorder={handleActivityReorder}
-                    onStoryUpdate={handleStoryUpdate}
-                    onAddStory={handleAddStory}
-                />
+                {viewMode === 'board' ? (
+                    <StoryMapBoard
+                        data={data}
+                        onStoryClick={setEditingStory}
+                        onActivityReorder={handleActivityReorder}
+                        onStoryUpdate={handleStoryUpdate}
+                        onAddStory={handleAddStory}
+                    />
+                ) : (
+                    <StoryTable
+                        data={data}
+                        onStoryClick={setEditingStory}
+                    />
+                )}
             </div>
 
             {/* Modals */}
