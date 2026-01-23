@@ -1,12 +1,30 @@
+import { useState } from 'react';
+import { Sparkles } from 'lucide-react';
 import type { StoryMap } from '../types';
+import AiMapGeneratorModal from './AiMapGeneratorModal';
+
+interface GeneratedMap {
+    mapName: string;
+    activities: string[];
+    releases: {
+        name: string;
+        stories: {
+            title: string;
+            activity: string;
+            body?: string;
+        }[];
+    }[];
+}
 
 interface HomePageProps {
     maps: StoryMap[];
     onSelectMap: (mapId: string) => void;
     onCreateMap: () => void;
+    onAiCreateMap: (data: GeneratedMap) => void;
 }
 
-export function HomePage({ maps, onSelectMap, onCreateMap }: HomePageProps) {
+export function HomePage({ maps, onSelectMap, onCreateMap, onAiCreateMap }: HomePageProps) {
+    const [isAiModalOpen, setIsAiModalOpen] = useState(false);
     const sampleMaps = maps.filter(m => m.isSample);
     const userMaps = maps.filter(m => !m.isSample);
 
@@ -23,8 +41,8 @@ export function HomePage({ maps, onSelectMap, onCreateMap }: HomePageProps) {
                     </p>
                 </div>
 
-                {/* Create New Map Button */}
-                <div className="mb-8">
+                {/* Create New Map Buttons */}
+                <div className="mb-8 flex gap-4 flex-wrap">
                     <button
                         onClick={onCreateMap}
                         className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
@@ -32,7 +50,21 @@ export function HomePage({ maps, onSelectMap, onCreateMap }: HomePageProps) {
                         <span className="text-xl">+</span>
                         新規マップを作成
                     </button>
+                    <button
+                        onClick={() => setIsAiModalOpen(true)}
+                        className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
+                    >
+                        <Sparkles className="w-5 h-5" />
+                        AIでマップを生成
+                    </button>
                 </div>
+
+                {/* AI Generator Modal */}
+                <AiMapGeneratorModal
+                    isOpen={isAiModalOpen}
+                    onClose={() => setIsAiModalOpen(false)}
+                    onGenerate={onAiCreateMap}
+                />
 
                 {/* Sample Maps */}
                 {sampleMaps.length > 0 && (

@@ -11,13 +11,15 @@ datasource db {
 }
 
 model StoryMap {
-  id         String   @id @default(uuid())
-  name       String
-  isSample   Boolean  @default(false)
-  activities String?  @default("[]")
-  stories    Story[]
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id            String   @id @default(uuid())
+  name          String
+  isSample      Boolean  @default(false)
+  activities    String?  @default("[]")
+  aiPrompt      String?
+  isAiGenerated Boolean  @default(false)
+  stories       Story[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model Story {

@@ -35,6 +35,7 @@
 | [US-006](./US-006-story-drag-drop.md) | Storyドラッグ&ドロップ機能 | ✅ 実装完了 | 2026-01-22 |
 | [US-007](./US-007-activity-reorder.md) | Activity並び替え機能 | ✅ 実装完了 | 2026-01-22 |
 | [US-008](./US-008-csv-export.md) | CSVエクスポート機能 | ✅ 実装完了 | 2026-01-22 |
+| [US-009](./US-009-ai-map-generation.md) | AI活用マップ生成機能 | ✅ 実装完了 | 2026-01-23 |
 
 ### 計画中
 

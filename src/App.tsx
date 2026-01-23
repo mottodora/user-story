@@ -6,8 +6,8 @@ import { MapPage } from './components/MapPage';
 
 function App() {
   const [maps, setMaps] = useState<StoryMap[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [, setError] = useState<string | null>(null);
+  const [, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   // Load all maps on mount
@@ -44,6 +44,42 @@ function App() {
     }
   };
 
+  const handleAiCreateMap = async (generatedData: any) => {
+    try {
+      // ストーリーを整形
+      const stories = generatedData.releases.flatMap((release: any) =>
+        release.stories.map((story: any) => ({
+          title: story.title,
+          activity: story.activity,
+          release: release.name,
+          body: story.body || '',
+          status: 'todo'
+        }))
+      );
+
+      // AI生成マップを作成
+      const res = await fetch('/api/maps', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: generatedData.mapName,
+          isAiGenerated: true,
+          aiPrompt: '', // プロンプトはモーダルに保存されている必要がある場合は渡す
+          activities: generatedData.activities,
+          stories
+        })
+      });
+
+      if (!res.ok) throw new Error("Failed to create AI map");
+      const newMap = await res.json();
+      setMaps([...maps, newMap]);
+      navigate(`/maps/${newMap.id}`);
+    } catch (e) {
+      console.error("AI Create Map Error:", e);
+      alert('AIマップの作成に失敗しました');
+    }
+  };
+
   const handleSelectMap = (mapId: string) => {
     navigate(`/maps/${mapId}`);
   };
@@ -60,6 +96,7 @@ function App() {
                 maps={maps}
                 onSelectMap={handleSelectMap}
                 onCreateMap={handleCreateMap}
+                onAiCreateMap={handleAiCreateMap}
               />
             }
           />
@@ -124,9 +161,6 @@ function Header() {
           <div className="text-sm px-3 py-1 bg-slate-100 rounded-full text-slate-600 font-medium">
             {mapData.stories?.length || 0} Stories
           </div>
-          <button className="bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-colors shadow">
-            Export
-          </button>
         </div>
       )}
     </header>
@@ -134,7 +168,7 @@ function Header() {
 }
 
 // Wrapper to pass props to MapPage
-function MapPageWrapper({ maps, onCreateMap }: { maps: StoryMap[]; onCreateMap: () => void }) {
+function MapPageWrapper({ maps: _maps, onCreateMap: _onCreateMap }: { maps: StoryMap[]; onCreateMap: () => void }) {
   return <MapPage />;
 }
 
