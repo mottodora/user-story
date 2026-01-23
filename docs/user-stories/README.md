@@ -28,6 +28,13 @@
 | ID | タイトル | ステータス | 実装日 |
 |----|---------|-----------|--------|
 | [US-001](./US-001-activity-deletion.md) | Activity削除機能 | ✅ 実装完了 | 2026-01-23 |
+| [US-002](./US-002-activity-addition.md) | Activity追加機能（モーダル化） | ✅ 実装完了 | 2026-01-22 |
+| [US-003](./US-003-homepage-map-selection.md) | ホームページ・マップ選択機能 | ✅ 実装完了 | 2026-01-22 |
+| [US-004](./US-004-story-persistence.md) | Story永続化機能 | ✅ 実装完了 | 2026-01-22 |
+| [US-005](./US-005-story-add-delete.md) | Story追加・削除機能 | ✅ 実装完了 | 2026-01-22 |
+| [US-006](./US-006-story-drag-drop.md) | Storyドラッグ&ドロップ機能 | ✅ 実装完了 | 2026-01-22 |
+| [US-007](./US-007-activity-reorder.md) | Activity並び替え機能 | ✅ 実装完了 | 2026-01-22 |
+| [US-008](./US-008-csv-export.md) | CSVエクスポート機能 | ✅ 実装完了 | 2026-01-22 |
 
 ### 計画中
 
