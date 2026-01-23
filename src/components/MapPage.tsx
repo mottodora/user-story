@@ -4,6 +4,7 @@ import type { Story, StoryMapData } from '../types';
 import { StoryMapBoard } from './StoryMapBoard';
 import { EditStoryModal } from './EditStoryModal';
 import { AddActivityModal } from './AddActivityModal';
+import { ActivityDetailModal } from './ActivityDetailModal';
 import { StoryTable } from './StoryTable';
 import { Download } from 'lucide-react';
 import { exportStoriesToCSV } from '../utils/csv';
@@ -13,6 +14,7 @@ export const MapPage = () => {
     const [data, setData] = useState<StoryMapData | null>(null);
     const [editingStory, setEditingStory] = useState<Story | null>(null);
     const [isAddActivityModalOpen, setIsAddActivityModalOpen] = useState(false);
+    const [selectedActivity, setSelectedActivity] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [viewMode, setViewMode] = useState<'board' | 'table'>('board');
@@ -177,6 +179,39 @@ export const MapPage = () => {
         }
     };
 
+    const handleActivityClick = (activityName: string) => {
+        setSelectedActivity(activityName);
+    };
+
+    const handleDeleteActivity = async (activityName: string): Promise<{ success: boolean; error?: string; storyCount?: number }> => {
+        if (!mapId || !data) return { success: false, error: '不明なエラー' };
+
+        try {
+            const res = await fetch(`/api/activities?mapId=${mapId}&name=${encodeURIComponent(activityName)}`, {
+                method: 'DELETE'
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json();
+                return {
+                    success: false,
+                    error: errorData.error || 'Activityの削除に失敗しました',
+                    storyCount: errorData.storyCount
+                };
+            }
+
+            // Update local state
+            const newActivities = data.activities.filter(a => a !== activityName);
+            setData({ ...data, activities: newActivities });
+            setSelectedActivity(null);
+
+            return { success: true };
+        } catch (e) {
+            console.error("Delete Activity Error:", e);
+            return { success: false, error: 'Activityの削除に失敗しました' };
+        }
+    };
+
     if (isLoading) {
         return (
             <div className="flex items-center justify-center h-full flex-col gap-4">
@@ -257,6 +292,7 @@ export const MapPage = () => {
                         onActivityReorder={handleActivityReorder}
                         onStoryUpdate={handleStoryUpdate}
                         onAddStory={handleAddStory}
+                        onActivityClick={handleActivityClick}
                     />
                 ) : (
                     <StoryTable
@@ -281,6 +317,13 @@ export const MapPage = () => {
                 onClose={() => setIsAddActivityModalOpen(false)}
                 onAdd={handleAddActivitySubmit}
                 existingActivities={data.activities}
+            />
+            <ActivityDetailModal
+                isOpen={!!selectedActivity}
+                onClose={() => setSelectedActivity(null)}
+                onDelete={handleDeleteActivity}
+                activityName={selectedActivity}
+                storyCount={selectedActivity ? data.stories.filter(s => s.activity === selectedActivity).length : 0}
             />
         </div>
     );

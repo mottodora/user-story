@@ -69,20 +69,13 @@ export default async function handler(req, res) {
                 return res.status(400).json({ error: 'mapId and name are required' });
             }
 
-            // Check if any stories are using this activity
-            const storiesWithActivity = await prisma.story.findMany({
+            // Delete all stories associated with this activity
+            await prisma.story.deleteMany({
                 where: {
                     mapId: String(mapId),
                     activity: String(name)
                 }
             });
-
-            if (storiesWithActivity.length > 0) {
-                return res.status(400).json({
-                    error: 'Cannot delete activity with existing stories',
-                    storyCount: storiesWithActivity.length
-                });
-            }
 
             // Get the current map
             const map = await prisma.storyMap.findUnique({
