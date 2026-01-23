@@ -31,6 +31,7 @@ interface StoryMapBoardProps {
     onActivityReorder?: (newOrder: string[]) => void;
     onStoryUpdate?: (newStories: Story[]) => void;
     onAddStory?: (release: string, activity: string) => void;
+    onActivityClick?: (activityName: string) => void;
 }
 
 export const StoryMapBoard: React.FC<StoryMapBoardProps> = ({
@@ -38,7 +39,8 @@ export const StoryMapBoard: React.FC<StoryMapBoardProps> = ({
     onStoryClick,
     onActivityReorder,
     onStoryUpdate,
-    onAddStory
+    onAddStory,
+    onActivityClick
 }) => {
     const [activeId, setActiveId] = useState<string | null>(null);
     const [activeStory, setActiveStory] = useState<Story | null>(null);
@@ -197,7 +199,12 @@ export const StoryMapBoard: React.FC<StoryMapBoardProps> = ({
                         strategy={horizontalListSortingStrategy}
                     >
                         {data.activities.map(activity => (
-                            <SortableActivityHeader key={activity} id={activity} title={activity} />
+                            <SortableActivityHeader
+                                key={activity}
+                                id={activity}
+                                title={activity}
+                                onActivityClick={onActivityClick}
+                            />
                         ))}
                     </SortableContext>
 

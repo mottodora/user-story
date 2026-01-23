@@ -6,9 +6,10 @@ import { ActivityHeader } from './ActivityHeader';
 interface SortableActivityHeaderProps {
     id: string;
     title: string;
+    onActivityClick?: (activityName: string) => void;
 }
 
-export const SortableActivityHeader: React.FC<SortableActivityHeaderProps> = ({ id, title }) => {
+export const SortableActivityHeader: React.FC<SortableActivityHeaderProps> = ({ id, title, onActivityClick }) => {
     const {
         attributes,
         listeners,
@@ -30,6 +31,14 @@ export const SortableActivityHeader: React.FC<SortableActivityHeaderProps> = ({ 
         touchAction: 'none' // Prevent scrolling while dragging
     };
 
+    const handleClick = (e: React.MouseEvent) => {
+        // Only trigger click if not dragging
+        if (!isDragging && onActivityClick) {
+            e.stopPropagation();
+            onActivityClick(title);
+        }
+    };
+
     return (
         <div
             ref={setNodeRef}
@@ -38,8 +47,9 @@ export const SortableActivityHeader: React.FC<SortableActivityHeaderProps> = ({ 
             {...listeners}
             className="sticky top-0 z-20 h-full flex flex-col"
         >
-            {/* Visual handle or just draggable header? checking ActivityHeader */}
-            <ActivityHeader title={title} />
+            <div onClick={handleClick}>
+                <ActivityHeader title={title} />
+            </div>
         </div>
     );
 };
