@@ -37,6 +37,12 @@ export const parseCSV = (csvText: string): StoryMapData => {
     });
 
     return {
+        map: {
+            id: 'imported-map',
+            name: 'Imported Map',
+            isSample: false,
+            createdAt: new Date().toISOString()
+        },
         activities: Array.from(activities),
         releases: Array.from(releases),
         stories,

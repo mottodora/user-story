@@ -8,17 +8,22 @@ CSVデータをインポートし、アクティビティ（バックボーン�
 
 ## 特徴 (Features)
 
+- **AIマップ生成**: Google Gemini APIを使用して、プロダクトアイデアからユーザーストーリーマップを自動生成。
 - **ユーザーストーリーマップの可視化**: アクティビティを横軸、優先度（リリース）を縦軸としたグリッド表示。
 - **インタラクティブな編集**: ストーリーカードをクリックして、タイトル、優先度、ステータス、受け入れ条件などを編集可能。
-- **CSVインポート**: 所定のフォーマットのCSVファイルを読み込んでマップを生成。
+- **ドラッグ&ドロップ**: ストーリーカードとアクティビティを直感的に並び替え。
+- **CSVエクスポート**: マップデータをCSV形式でエクスポート。
 - **モダンなUI**: TailwindCSS (v4) を使用したクリーンで使いやすいデザイン。
 
 ## 技術スタック (Tech Stack)
 
 - **Frontend**: React, TypeScript
+- **Backend**: Vercel API Routes
+- **Database**: Prisma + SQLite (PostgreSQL対応)
 - **Build Tool**: Vite
 - **Styling**: TailwindCSS (v4)
-- **CSV Parsing**: Papaparse
+- **Drag & Drop**: @dnd-kit
+- **AI Integration**: Vercel AI SDK + Google Gemini API
 - **Icons**: Lucide React
 
 ## セットアップと実行 (Getting Started)
@@ -34,11 +39,27 @@ cd user-story-mapping
 npm install
 ```
 
-### 3. アプリケーションの実行
+### 3. 環境変数の設定
+
+AI生成機能を使用する場合、`.env`ファイルを作成してGoogle Gemini APIキーを設定してください：
+
 ```bash
-npm run dev
+cp .env.example .env
+# .envファイルを編集して、GOOGLE_GENERATIVE_AI_API_KEYを設定
 ```
-ブラウザで `http://localhost:5173` (またはコンソールに表示されるポート) を開いてください。
+
+APIキーは[Google AI Studio](https://makersuite.google.com/app/apikey)で取得できます。
+
+### 4. データベースのセットアップ
+```bash
+npx prisma migrate dev
+```
+
+### 5. アプリケーションの実行
+```bash
+PORT=3000 npx vercel dev
+```
+ブラウザで `http://localhost:3000` を開いてください。
 
 ## データフォーマット (CSV)
 
